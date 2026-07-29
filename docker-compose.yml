@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Basis Data Relasional Utama (Rekam Medis)
+  postgres-db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ocusense_admin
+      POSTGRES_PASSWORD: secure_database_password
+      POSTGRES_DB: ocusense_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ocusense_db_data:/var/lib/postgresql/data
+
+  # Pialang Pesan Sentral (IoT)
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    restart: always
+    ports:
+      - "1883:1883"  # Protokol TCP untuk Alat IoT, Tim AI, dan Backend Peladen
+      - "9001:9001"  # Protokol WebSockets untuk Antarmuka Klien Web
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+volumes:
+  ocusense_db_data:
