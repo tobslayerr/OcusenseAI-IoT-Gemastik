@@ -4,9 +4,10 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // <-- KEMBALIKAN BARIS INI
+  url      = env("DATABASE_URL")
 }
 
+// Tabel 1: Rekam Medis Utama (Diekstraksi dari Payload)
 model MedicalRecord {
   id                String   @id @default(uuid())
   scanId            String   @unique @map("scan_id")
@@ -21,4 +22,16 @@ model MedicalRecord {
   referralIssued    Boolean  @default(false) @map("referral_issued")
 
   @@map("medical_records")
+}
+
+// Tabel 2: Log Perangkat IoT Mentah (Ocusense Payload)
+model DeviceLog {
+  id          String   @id @default(uuid())
+  scanId      String   @map("scan_id")
+  timestamp   DateTime @default(now())
+  
+  // Menyimpan muatan (payload) OcusensePayload JSON secara utuh dari MQTT
+  payload     Json     
+  
+  @@map("device_logs")
 }
