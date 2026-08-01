@@ -1,26 +1,74 @@
+version: '3.8'
+
 services:
-  # Basis Data Relasional Utama (Rekam Medis)
-  postgres-db:
+  # 1. Layanan Basis Data PostgreSQL
+  postgres:
     image: postgres:15-alpine
-    restart: always
+    container_name: ocusense_db
     environment:
       POSTGRES_USER: ocusense_admin
-      POSTGRES_PASSWORD: secure_database_password
-      POSTGRES_DB: ocusense_db
+      POSTGRES_PASSWORD: secret_password123
+      POSTGRES_DB: ocusense_production
     ports:
-      - "5433:5432" # <-- DIUBAH: Port eksternal digeser ke 5433
+      - "5433:5432"
     volumes:
-      - ocusense_db_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ocusense_network
 
-  # Pialang Pesan Sentral (IoT)
-  mqtt-broker:
-    image: eclipse-mosquitto:2.0
-    restart: always
+  # 2. Layanan Pialang IoT MQTT
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: ocusense_mqtt
     ports:
-      - "1883:1883"  # Protokol TCP untuk Alat IoT, Tim AI, dan Backend Peladen
-      - "9001:9001"  # Protokol WebSockets untuk Antarmuka Klien Web
+      - "1883:1883" # Port TCP Mesin (Python Edge -> Broker)
+      - "9001:9001" # Port WebSockets (Broker -> Dashboard Zustand)
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: unless-stopped
+    networks:
+      - ocusense_network
+
+  # 3. Layanan Dasbor Web Next.js
+  web:
+    build: .
+    container_name: ocusense_web
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://ocusense_admin:secret_password123@postgres:5432/ocusense_production?schema=public
+    depends_on:
+      - postgres
+    # Mengeksekusi sinkronisasi skema DB, baru menyalakan peladen web
+    command: sh -c "npx prisma db push && npm run start"
+    restart: unless-stopped
+    networks:
+      - ocusense_network
+
+  # 4. Layanan Pekerja Latar Belakang (Listener & Notifikasi Otonom)
+  worker:
+    build: .
+    container_name: ocusense_worker
+    environment:
+      - DATABASE_URL=postgresql://ocusense_admin:secret_password123@postgres:5432/ocusense_production?schema=public
+      - MQTT_BROKER_URL=mqtt://mosquitto:1883 # Terhubung antar-kontainer
+      # Mewariskan variabel dari .env di mesin fisik ke dalam kontainer
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - ALERT_TARGET_EMAIL=${ALERT_TARGET_EMAIL}
+      - ALERT_TARGET_PHONE=${ALERT_TARGET_PHONE}
+    depends_on:
+      - postgres
+      - mosquitto
+    command: npm run listener
+    restart: unless-stopped
+    networks:
+      - ocusense_network
 
 volumes:
-  ocusense_db_data:
+  pgdata:
+
+networks:
+  ocusense_network:
+    driver: bridge

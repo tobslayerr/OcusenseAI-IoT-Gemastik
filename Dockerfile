@@ -1,19 +1,26 @@
-# Tahap Basis
-FROM node:18-alpine AS base
+# Menggunakan image Node.js yang ringan
+FROM node:18-alpine
+
+# Menentukan direktori kerja di dalam kontainer
 WORKDIR /app
 
-# Tahap Instalasi Dependensi (Draf)
-FROM base AS deps
+# Menyalin fail dependensi terlebih dahulu (untuk efisiensi cache Docker)
 COPY package.json package-lock.json* ./
-# Perintah instalasi akan disisipkan di sini pada tahap eksekusi kode
 
-# Tahap Pembangunan Aplikasi
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# Menginstal semua dependensi
+RUN npm install
+
+# Menyalin seluruh kode proyek ke dalam kontainer
 COPY . .
-# Perintah Prisma Generate dan Next Build akan disisipkan di sini
 
-# Tahap Lingkungan Produksi
-FROM base AS runner
-ENV NODE_ENV production
-# Pengaturan port dan eksekusi peladen node akan disisipkan di sini
+# Menghasilkan klien Prisma (Wajib sebelum build Next.js)
+RUN npx prisma generate
+
+# Melakukan proses Build (Mengubah TypeScript/React menjadi HTML/JS statis produksi)
+RUN npm run build
+
+# Membuka port 3000
+EXPOSE 3000
+
+# Perintah bawaan (bisa ditimpa oleh docker-compose)
+CMD ["npm", "run", "start"]

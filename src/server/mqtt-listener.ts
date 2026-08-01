@@ -2,7 +2,8 @@ import mqtt from 'mqtt';
 import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const client = mqtt.connect('mqtt://localhost:1883');
+const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883';
+const client = mqtt.connect(brokerUrl);
 
 client.on('connect', () => {
   console.log('🤖 Pekerja Latar Belakang (Backend) Terhubung ke MQTT TCP Port 1883');
