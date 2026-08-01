@@ -1,11 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react"; // Tambahkan impor 'use' dari React
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function ValidationFormPage({ params }: { params: { id: string } }) {
+// Ubah tipe params menjadi Promise
+export default function ValidationFormPage({ params }: { params: Promise<{ id: string }> }) {
+  // Buka bungkus Promise menggunakan use()
+  const { id } = use(params); 
+  
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [diagnosis, setDiagnosis] = useState("katarak_imatur");
@@ -22,7 +26,8 @@ export default function ValidationFormPage({ params }: { params: { id: string } 
     e.preventDefault();
     setIsSubmitting(true);
     setTimeout(() => {
-      router.push(`/history/${params.id}`);
+      // Gunakan variabel 'id' yang sudah diekstrak
+      router.push(`/history/${id}`);
     }, 1500);
   };
 
@@ -32,7 +37,7 @@ export default function ValidationFormPage({ params }: { params: { id: string } 
         <Link href="/validation" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1 mb-2">
           <i className="ph-bold ph-arrow-left"></i> Kembali ke Antrean
         </Link>
-        <h2 className="font-outfit text-3xl font-bold text-slate-800">Validasi Medis <span className="text-blue-600">#{params.id}</span></h2>
+        <h2 className="font-outfit text-3xl font-bold text-slate-800">Validasi Medis <span className="text-blue-600">#{id}</span></h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -2,32 +2,33 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react"; // Tambahkan impor 'use' dari React
 import { useRouter } from "next/navigation";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ExportButton from "@/components/ui/ExportButton";
 
-export default function HistoryDetailPage({ params }: { params: { id: string } }) {
+// Ubah tipe params menjadi Promise
+export default function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  // Buka bungkus Promise menggunakan use()
+  const { id } = use(params);
+
   const router = useRouter();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExportPDF = async () => {
     setIsExporting(true);
-    // Dynamic import untuk menghindari error SSR pada html2pdf
     const html2pdf = (await import("html2pdf.js")).default;
     const element = document.getElementById("pdf-report-area");
     
     if (element) {
-      // PERBAIKAN DI SINI: Penambahan 'as const' dan tipe literal untuk TypeScript
       const opt = {
         margin: 0.5,
-        filename: `Rekam-Medis-${params.id}.pdf`,
+        filename: `Rekam-Medis-${id}.pdf`, // Gunakan variabel 'id'
         image: { type: 'jpeg' as 'jpeg', quality: 1 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'in' as 'in', format: 'a4' as 'a4', orientation: 'portrait' as 'portrait' }
       };
       
-      // Manipulasi sementara untuk menyesuaikan lebar PDF
       const originalClasses = element.className;
       element.className = "bg-white p-8 text-slate-800 max-w-[790px] mx-auto";
       
@@ -44,7 +45,7 @@ export default function HistoryDetailPage({ params }: { params: { id: string } }
           <button onClick={() => router.back()} className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1 mb-2">
             <i className="ph-bold ph-arrow-left"></i> Kembali
           </button>
-          <h2 className="font-outfit text-3xl font-bold text-slate-800">Laporan #{params.id}</h2>
+          <h2 className="font-outfit text-3xl font-bold text-slate-800">Laporan #{id}</h2>
         </div>
         <ExportButton onClick={handleExportPDF} isLoading={isExporting} />
       </div>
@@ -56,7 +57,7 @@ export default function HistoryDetailPage({ params }: { params: { id: string } }
             <p className="text-sm font-bold tracking-widest text-slate-500 uppercase mt-1">Cataract Screening Report</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-slate-500">ID Laporan: <span className="font-mono font-bold text-slate-800">{params.id}</span></p>
+            <p className="text-sm text-slate-500">ID Laporan: <span className="font-mono font-bold text-slate-800">{id}</span></p>
             <p className="text-sm text-slate-500">Waktu Scan: <span className="font-bold text-slate-800">28 Juli 2026, 14:32 WIB</span></p>
           </div>
         </div>
