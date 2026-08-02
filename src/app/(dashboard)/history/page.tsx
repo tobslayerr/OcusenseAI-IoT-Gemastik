@@ -31,7 +31,7 @@ export default function HistoryPage() {
         const dataDevice = await resDevice.json();
         if (dataDevice.success) setDeviceName(dataDevice.data.name);
 
-        const resRecords = await fetch(`/api/records?t=${Date.now()}`, { cache: 'no-store' });
+        const resRecords = await fetch(`/api/records?t=${Date.now()}&deviceId=${activeDeviceId}`, { cache: 'no-store' });
         const dataRecords = await resRecords.json();
         
         if (dataRecords.success) {

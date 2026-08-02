@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PrismaClient } from '@prisma/client';
 import mqtt from 'mqtt';
 import nodemailer from 'nodemailer';
@@ -11,14 +10,6 @@ const transporter = nodemailer.createTransport({
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
 });
 
-const sendSimulatedWhatsApp = (phone: string, message: string) => {
-  console.log('\n' + '🟩'.repeat(25));
-  console.log(`📱 [SIMULASI WHATSAPP] Pesan terkirim ke: ${phone}`);
-  console.log('-'.repeat(50));
-  console.log(message);
-  console.log('🟩'.repeat(25) + '\n');
-};
-
 client.on('connect', () => {
   console.log('\n======================================================');
   console.log('✅ 📡 MQTT LISTENER AKTIF & SIAP MENERIMA DATA');
@@ -26,8 +17,6 @@ client.on('connect', () => {
   client.subscribe('ocusense/register');
   client.subscribe('ocusense/scans');
 });
-
-client.on('error', (err) => console.error('\n❌ [MQTT ERROR]:', err.message));
 
 client.on('message', async (topic, message) => {
   try {
@@ -51,19 +40,20 @@ client.on('message', async (topic, message) => {
       const device = await prisma.device.findUnique({ where: { macAddress: payload.mac_address } });
       if(!device) return;
 
-      const patientName = device.operatorName || "Pasien Anonim";
+      const patientName = device.operatorName || "Data Pasien Tidak Diketahui";
+      const patientDob = device.operatorDob ? new Date(device.operatorDob) : new Date();
+      
       let calculatedAge = 0;
       if (device.operatorDob) {
-        calculatedAge = new Date().getFullYear() - new Date(device.operatorDob).getFullYear();
+        calculatedAge = new Date().getFullYear() - patientDob.getFullYear();
       }
 
-      // 1. SIMPAN KE DATABASE TERLEBIH DAHULU (PISAHKAN DARI EMAIL)
       try {
         await prisma.medicalRecord.create({
           data: {
             scanId: payload.scan_id,
             patientName: patientName,
-            patientDob: device.operatorDob || new Date(),
+            patientDob: patientDob,
             patientAge: calculatedAge,
             timestamp: new Date(payload.timestamp),
             batteryPercentage: 100,
@@ -75,63 +65,129 @@ client.on('message', async (topic, message) => {
             deviceId: device.id
           },
         });
-        console.log(`💾 [DATABASE] Data #${payload.scan_id} berhasil diamankan ke History!`);
       } catch (dbError) {
         console.error("❌ Gagal menyimpan ke Database:", dbError);
-        return; // Hentikan jika gagal simpan
+        return; 
       }
 
       const scanTime = new Date(payload.timestamp).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+      const dobFormatted = patientDob.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+      
       const isMatur = payload.ai_analysis.diagnosis === "Katarak Matur";
-      const isImatur = payload.ai_analysis.diagnosis === "Katarak Imatur";
+      const handlingStatus = isMatur ? 'PERLU RUJUKAN BEDAH SEGERA' : 'BATAS AMAN / OBSERVASI KLINIS';
+      const colorTheme = isMatur ? "#dc2626" : payload.ai_analysis.diagnosis === "Katarak Imatur" ? "#ea580c" : "#059669";
 
-      // 2. PROSES PENGIRIMAN NOTIFIKASI (TIDAK AKAN MENGGANGGU DATABASE JIKA GAGAL)
-      try {
-        if (device.alertPhone) {
-          const waMessage = `*Laporan Pemindaian Ocusense AI* 👁️\n\nHalo, ini adalah ringkasan hasil periksa mata cerdas Anda:\n\n👤 *Pasien:* ${patientName} (${calculatedAge} Thn)\n🕒 *Waktu:* ${scanTime} WIB\n\n🔍 *Hasil Diagnosis AI:* ${payload.ai_analysis.diagnosis}\n🎯 *Akurasi AI:* ${payload.ai_analysis.confidence_score}%\n\n${isMatur ? '⚠️ *PERINGATAN:* Segera konsultasikan ke dokter spesialis mata.' : '✅ *STATUS:* Aman / Tahap Awal.'}`;
-          sendSimulatedWhatsApp(device.alertPhone, waMessage);
-        }
+      // 🟢 TRIK EMAIL: KALKULASI GRID TABEL PIXEL-PERFECT (Untuk Mengganti Absolute Positioning)
+      const bbox = payload.ai_analysis.bounding_box;
+      const x = Math.round(bbox[0]);
+      const y = Math.round(bbox[1]);
+      const w = Math.round(bbox[2] - bbox[0]);
+      const h = Math.round(bbox[3] - bbox[1]);
 
-        if (device.alertEmail) {
-          const colorTheme = isMatur ? "#ef4444" : isImatur ? "#f97316" : "#10B981";
-          
-          const bbox = payload.ai_analysis.bounding_box;
-          const left = (bbox[0] / 640) * 100;
-          const top = (bbox[1] / 480) * 100;
-          const width = ((bbox[2] - bbox[0]) / 640) * 100;
-          const height = ((bbox[3] - bbox[1]) / 480) * 100;
-
-          const htmlTemplate = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
-              <div style="background-color: ${colorTheme}; padding: 30px; text-align: center;">
-                <h1 style="color: white; margin: 0;">Laporan Ocusense AI</h1>
+      if (device.alertEmail) {
+        const htmlTemplate = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #f1f5f9; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+            <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+              
+              <div style="background-color: #0f172a; padding: 25px 30px; text-align: left; border-bottom: 4px solid ${colorTheme};">
+                <h1 style="color: #ffffff; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">LAPORAN HASIL PENAPISAN MEDIS</h1>
+                <p style="color: #94a3b8; margin-top: 5px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">Sistem Diagnostik Ocusense AI</p>
               </div>
+              
               <div style="padding: 30px;">
-                <h2>Pasien: ${patientName} (${calculatedAge} Tahun)</h2>
-                <h3 style="color: ${colorTheme};">${payload.ai_analysis.diagnosis} (${payload.ai_analysis.confidence_score}%)</h3>
                 
-                <div style="position: relative; width: 100%; background-color: #000; border-radius: 12px; overflow: hidden; margin: 20px 0; aspect-ratio: 4/3;">
-                  <img src="cid:scanImage" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); opacity: 0.9;" />
+                <h3 style="color: #0f172a; font-size: 13px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Informasi Pasien & Pindai</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
+                  <tr>
+                    <td style="padding: 10px 0; color: #475569; width: 40%;">Nama Lengkap</td>
+                    <td style="padding: 10px 0; color: #0f172a; font-weight: 600; text-align: right;">${patientName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Usia & Tanggal Lahir</td>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 600; text-align: right;">${calculatedAge} Tahun (${dobFormatted})</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Tanggal & Waktu Periksa</td>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 600; text-align: right;">${scanTime} WIB</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Lokasi Pemindaian (Alat)</td>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 600; text-align: right;">${device.name}</td>
+                  </tr>
+                </table>
+
+                <h3 style="color: #0f172a; font-size: 13px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Kesimpulan Analisis Klinis</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
+                  <tr>
+                    <td style="padding: 10px 0; color: #475569; width: 40%;">Diagnosis Primer</td>
+                    <td style="padding: 10px 0; color: ${colorTheme}; font-weight: 800; font-size: 16px; text-align: right; text-transform: uppercase;">${payload.ai_analysis.diagnosis}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Tingkat Kepercayaan (Akurasi)</td>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 700; text-align: right;">${payload.ai_analysis.confidence_score}%</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Status Penanganan</td>
+                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 700; text-align: right;">${handlingStatus}</td>
+                  </tr>
+                </table>
+
+                <h3 style="color: #0f172a; font-size: 13px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Citra Medis & Lokalisasi (YOLO Vision)</h3>
+                
+                <!-- 🟢 STRUKTUR TABEL GRID AMAN EMAIL (CLONING DASBOR) -->
+                <div style="background-color: #000000; border: 2px solid #cbd5e1; border-radius: 8px; overflow: hidden; margin-bottom: 30px; width: 100%; max-width: 640px; margin-left: auto; margin-right: auto;">
                   
-                  <div style="position: absolute; left: ${left}%; top: ${top}%; width: ${width}%; height: ${height}%; border: 2px solid ${colorTheme}; background-color: ${colorTheme}1A;">
-                    <span style="position: absolute; top: 0; left: 0; background-color: ${colorTheme}; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-bottom-right-radius: 8px;">EYE : ${payload.ai_analysis.confidence_score}%</span>
-                  </div>
+                  <table background="cid:scanImage" width="100%" height="480" cellpadding="0" cellspacing="0" border="0" style="background-image: url('cid:scanImage'); background-size: cover; background-position: center; width: 100%; height: 480px; max-width: 640px; border-collapse: collapse;">
+                    <!-- BARIS 1: Spasi Kosong Atas -->
+                    <tr>
+                      <td width="${x}" height="${y}"></td>
+                      <td width="${w}" height="${y}"></td>
+                      <td width="${640 - x - w}" height="${y}"></td>
+                    </tr>
+                    <!-- BARIS 2: Kotak Bounding Box YOLO -->
+                    <tr>
+                      <td width="${x}" height="${h}"></td>
+                      <td width="${w}" height="${h}" style="border: 3px solid ${colorTheme}; vertical-align: top;">
+                         <div style="background-color: ${colorTheme}; color: #ffffff; font-size: 11px; font-weight: bold; display: inline-block; padding: 4px 8px; border-bottom-right-radius: 6px;">EYE: ${payload.ai_analysis.confidence_score}%</div>
+                      </td>
+                      <td width="${640 - x - w}" height="${h}"></td>
+                    </tr>
+                    <!-- BARIS 3: Spasi Kosong Bawah -->
+                    <tr>
+                      <td width="${x}" height="${480 - y - h}"></td>
+                      <td width="${w}" height="${480 - y - h}"></td>
+                      <td width="${640 - x - w}" height="${480 - y - h}"></td>
+                    </tr>
+                  </table>
+
+                </div>
+
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: center;">
+                  <p style="font-size: 11px; color: #64748b; line-height: 1.6; margin: 0;">
+                    Dokumen elektronik ini digenerasi secara otomatis oleh sistem komputasi Ocusense.<br/>
+                    Laporan ini bersifat sebagai penunjang skrining awal dan bukan merupakan vonis diagnosis mutlak.<br/>
+                    Harap konsultasikan hasil ini kepada Dokter Spesialis Mata (Sp.M).
+                  </p>
                 </div>
               </div>
             </div>
-          `;
+          </body>
+          </html>
+        `;
 
-          await transporter.sendMail({
-            from: '"Ocusense AI" <no-reply@ocusense.id>',
-            to: device.alertEmail,
-            subject: `Laporan Scan - ${patientName} (${payload.ai_analysis.diagnosis})`,
-            html: htmlTemplate,
-            attachments: [{ filename: `SCN.jpg`, content: payload.image, encoding: 'base64', cid: 'scanImage' }]
-          });
-          console.log(`📧 [EMAIL TERKIRIM] Berhasil dikirim ke: ${device.alertEmail}`);
-        }
-      } catch (notifError) {
-        console.error("⚠️ [INFO] Data tersimpan, tapi Gagal kirim Email/WA. Cek konfigurasi Sandi Gmail Anda!");
+        await transporter.sendMail({
+          from: '"Departemen Diagnostik Ocusense" <no-reply@ocusense.id>',
+          to: device.alertEmail,
+          subject: `Laporan Medis [${payload.scan_id}] - ${patientName}`,
+          html: htmlTemplate,
+          attachments: [{ filename: `Citra_${payload.scan_id}.jpg`, content: payload.image, encoding: 'base64', cid: 'scanImage' }]
+        });
       }
     }
   } catch (error) {

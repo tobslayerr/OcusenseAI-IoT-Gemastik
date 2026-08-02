@@ -3,16 +3,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useMqttStore } from "@/store/useMqttStore";
 
 export default function LandingPage() {
   const router = useRouter();
   
+  // 🟢 Tarik status dari store
+  const { connect, onlineDevices } = useMqttStore();
+
   const [currentStep, setCurrentStep] = useState<string>("LIST");
   const [devices, setDevices] = useState<any[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
   
   const [inputPin, setInputPin] = useState("");
-  const [pinError, setPinError] = useState(false);
+  const [loginError, setLoginError] = useState(""); // 🟢 Pesan Error Kustom
   const [opName, setOpName] = useState("");
   const [opDob, setOpDob] = useState("");
 
@@ -22,13 +26,16 @@ export default function LandingPage() {
       .then(data => setDevices(data.data || []));
   };
 
-  useEffect(() => fetchDevices(), []);
+  useEffect(() => {
+    connect(); // Hubungkan MQTT sejak di Landing Page agar tau status alat
+    fetchDevices();
+  }, [connect]);
 
   const handleSelectDevice = (device: any) => {
     setSelectedDevice(device);
     setCurrentStep("PAIRING");
     setInputPin("");
-    setPinError(false);
+    setLoginError("");
   };
 
   const handleDeleteDevice = async (e: React.MouseEvent, id: string, name: string) => {
@@ -41,8 +48,15 @@ export default function LandingPage() {
 
   const handleVerifyPin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError("");
+
+    // 🟢 CEK APAKAH PYTHON ALAT INI SEDANG MENYALA?
+    if (onlineDevices[selectedDevice.macAddress] !== true) {
+      setLoginError("Alat fisik ini sedang offline (mati). Silakan nyalakan sistem alat terlebih dahulu.");
+      return;
+    }
+
     if (selectedDevice.pairingCode === inputPin) {
-      setPinError(false);
       if (selectedDevice.operatorName) {
         await fetch(`/api/devices/${selectedDevice.id}`, {
           method: 'PATCH',
@@ -54,7 +68,7 @@ export default function LandingPage() {
         setCurrentStep("REGISTER");
       }
     } else {
-      setPinError(true);
+      setLoginError("PIN yang Anda masukkan salah.");
     }
   };
 
@@ -82,7 +96,6 @@ export default function LandingPage() {
       
       <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/10 text-center relative z-10 transition-all">
         
-        {/* TAHAP 1 */}
         {currentStep === "LIST" && (
           <div className="animate-fade-in">
             <div className="w-24 h-24 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -111,6 +124,8 @@ export default function LandingPage() {
                           {device.operatorName ? `👤 Pasien: ${device.operatorName}` : "⚠️ Data Kosong"}
                         </p>
                       </div>
+                      {/* Indikator Online/Offline Live dari MQTT */}
+                      <div className="absolute right-12 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: onlineDevices[device.macAddress] === true ? '#10B981' : '#EF4444' }}></div>
                     </button>
                     <button onClick={(e) => handleDeleteDevice(e, device.id, device.name)} className="absolute right-4 w-8 h-8 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"><i className="ph-bold ph-trash"></i></button>
                   </div>
@@ -120,7 +135,6 @@ export default function LandingPage() {
           </div>
         )}
 
-        {/* TAHAP 2 */}
         {currentStep === "PAIRING" && (
           <form onSubmit={handleVerifyPin} className="animate-fade-in text-left">
             <button type="button" onClick={() => setCurrentStep("LIST")} className="text-slate-400 hover:text-white mb-6 flex items-center gap-2 text-sm font-bold transition-colors">
@@ -130,21 +144,20 @@ export default function LandingPage() {
               <i className="ph-fill ph-lock-key text-3xl text-emerald-400"></i>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Otorisasi Alat</h2>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed">Masukkan <strong>4-Digit PIN</strong> dari layar terminal alat.</p>
+            <p className="text-slate-400 text-sm mb-6 leading-relaxed">Masukkan <strong>4-Digit PIN</strong> dari layar terminal <strong>{selectedDevice?.name}</strong>.</p>
             
             <div className="mb-6">
-              <input type="text" maxLength={4} required value={inputPin} onChange={e => setInputPin(e.target.value)} className={`w-full bg-slate-800 border ${pinError ? 'border-red-500' : 'border-slate-700 focus:border-emerald-500'} text-white font-mono text-center text-3xl tracking-[0.5em] rounded-xl px-4 py-5 outline-none transition-all`} placeholder="••••" />
-              {pinError && <p className="text-red-400 text-xs font-bold mt-3"><i className="ph-fill ph-warning-circle"></i> PIN salah!</p>}
+              <input type="text" maxLength={4} required value={inputPin} onChange={e => setInputPin(e.target.value)} className={`w-full bg-slate-800 border ${loginError ? 'border-red-500' : 'border-slate-700 focus:border-emerald-500'} text-white font-mono text-center text-3xl tracking-[0.5em] rounded-xl px-4 py-5 outline-none transition-all`} placeholder="••••" />
+              {loginError && <p className="text-red-400 text-xs font-bold mt-3"><i className="ph-fill ph-warning-circle"></i> {loginError}</p>}
             </div>
             <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg">Buka Kunci</button>
           </form>
         )}
 
-        {/* TAHAP 3: REGISTRASI PASIEN */}
         {currentStep === "REGISTER" && (
           <form onSubmit={handleRegisterProfile} className="animate-fade-in text-left">
             <h2 className="text-2xl font-bold text-white mb-2">Data Pasien Baru</h2>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed">Profil alat ini masih kosong. Silakan lengkapi identitas Pasien (Pengguna Alat).</p>
+            <p className="text-slate-400 text-sm mb-6 leading-relaxed">Profil alat ini masih kosong. Silakan lengkapi identitas Pasien.</p>
             
             <div className="space-y-5 mb-8">
               <div>
@@ -152,7 +165,7 @@ export default function LandingPage() {
                 <input type="text" required value={opName} onChange={e => setOpName(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white font-medium rounded-xl px-4 py-3 outline-none focus:border-blue-500" placeholder="Cth: Budi Santoso" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal Lahir Pasien</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal Lahir</label>
                 <input type="date" required value={opDob} onChange={e => setOpDob(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white font-medium rounded-xl px-4 py-3 outline-none focus:border-blue-500" />
               </div>
             </div>
@@ -160,7 +173,6 @@ export default function LandingPage() {
           </form>
         )}
 
-        {/* TAHAP 4 */}
         {currentStep === "CONNECTING" && (
           <div className="py-10 animate-fade-in">
             <i className="ph-fill ph-wifi-high text-6xl text-emerald-400 animate-pulse mb-6 inline-block"></i>

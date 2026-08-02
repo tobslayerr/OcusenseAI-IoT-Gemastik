@@ -8,10 +8,12 @@ interface MqttState {
   isConnected: boolean;
   battery: number;
   latency: number;
-  latestScanPayload: any | null; // 🟢 Menyimpan data scan real-time
+  isCharging: boolean; // 🟢 Status Pengecasan
+  latestScanPayload: any | null;
+  onlineDevices: Record<string, boolean>;
   connect: () => void;
   disconnect: () => void;
-  clearLatestScan: () => void;   // 🟢 Fungsi untuk menghapus scan dari layar
+  clearLatestScan: () => void;
 }
 
 export const useMqttStore = create<MqttState>((set, get) => ({
@@ -19,12 +21,13 @@ export const useMqttStore = create<MqttState>((set, get) => ({
   isConnected: false,
   battery: 0,
   latency: 0,
+  isCharging: false,
   latestScanPayload: null,
+  onlineDevices: {},
   clearLatestScan: () => set({ latestScanPayload: null }),
   
   connect: () => {
     const currentClient = get().client;
-    // Cegah duplikasi koneksi
     if (currentClient && currentClient.connected) return;
 
     const client = mqtt.connect('ws://localhost:9001', {
@@ -35,20 +38,34 @@ export const useMqttStore = create<MqttState>((set, get) => ({
 
     client.on('connect', () => {
       set({ isConnected: true, client });
-      // Dengarkan Baterai & Hasil Scan secara bersamaan!
       client.subscribe('ocusense/telemetry');
       client.subscribe('ocusense/scans'); 
+      client.subscribe('ocusense/status/#'); 
     });
 
     client.on('message', (topic, message) => {
+      if (topic.startsWith('ocusense/status/')) {
+        const macAddress = topic.split('/')[2];
+        try {
+          const data = JSON.parse(message.toString());
+          set((state) => ({
+            onlineDevices: { ...state.onlineDevices, [macAddress]: data.status === 'online' }
+          }));
+        } catch (e) {}
+      }
+
       if (topic === 'ocusense/telemetry') {
         try {
           const data = JSON.parse(message.toString());
-          set({ battery: data.battery_percentage, latency: data.latency_ms });
+          // 🟢 Tangkap Status Baterai, Ping, dan Mengecas
+          set({ 
+            battery: data.battery_percentage, 
+            latency: data.latency_ms,
+            isCharging: data.is_charging 
+          });
         } catch (e) {}
       }
       
-      // 🟢 TANGKAP HASIL SCAN SECARA REAL-TIME
       if (topic === 'ocusense/scans') {
         try {
           const data = JSON.parse(message.toString());

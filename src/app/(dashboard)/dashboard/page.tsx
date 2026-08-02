@@ -1,6 +1,7 @@
-/* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prefer-const */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -13,13 +14,24 @@ import { useMqttStore } from "@/store/useMqttStore";
 dayjs.locale('id');
 
 export default function DashboardPage() {
-  const { isConnected, battery, latency, latestScanPayload, clearLatestScan } = useMqttStore();
+  // 🟢 PERBAIKAN: Menambahkan 'isCharging' di sini agar dikenali oleh TypeScript
+  const { isConnected, battery, latency, isCharging, latestScanPayload, clearLatestScan } = useMqttStore();
   
   const [device, setDevice] = useState<any>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
   const [clearedScanIds, setClearedScanIds] = useState<string[]>([]);
   const [stats, setStats] = useState({ total: 0, matur: 0, imatur: 0, normal: 0 });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedClearedIds = localStorage.getItem("cleared_scans");
+      if (savedClearedIds) {
+        setClearedScanIds(JSON.parse(savedClearedIds));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -32,12 +44,11 @@ export default function DashboardPage() {
         const dataDevice = await resDevice.json();
         if (dataDevice.success) setDevice(dataDevice.data);
 
-        const resRecords = await fetch(`/api/records?t=${Date.now()}`, { cache: 'no-store' });
+        const resRecords = await fetch(`/api/records?t=${Date.now()}&deviceId=${deviceId}`, { cache: 'no-store' });
         const dataRecords = await resRecords.json();
         
         if (dataRecords.success) {
-          const deviceRecords = dataRecords.data.filter((item: any) => item.deviceId === deviceId);
-          const sorted = deviceRecords.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          const sorted = dataRecords.data.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
           setRecords(sorted);
 
           let countMatur = 0, countImatur = 0, countNormal = 0;
@@ -90,12 +101,14 @@ export default function DashboardPage() {
 
   const handleSelesai = () => {
     if (displayScan?.scanId) {
-      setClearedScanIds(prev => [...prev, displayScan.scanId]);
+      const updatedClearedIds = [...clearedScanIds, displayScan.scanId];
+      setClearedScanIds(updatedClearedIds);
+      localStorage.setItem("cleared_scans", JSON.stringify(updatedClearedIds));
     }
     clearLatestScan();
   };
 
- const renderYoloBox = (bbox: number[], diagnosis: string, confidence: number) => {
+  const renderYoloBox = (bbox: number[], diagnosis: string, confidence: number) => {
     if (!bbox || bbox.length !== 4) return null;
     const CAM_W = 640;
     const CAM_H = 480;
@@ -113,8 +126,8 @@ export default function DashboardPage() {
            style={{ 
              left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%`,
              border: `2px solid ${colorHex}`,
-             backgroundColor: `${colorHex}1A`, // Efek Transparan 10%
-             boxShadow: `0 0 15px ${colorHex}4D` // Efek Glowing 30% persis HTML Anda
+             backgroundColor: `${colorHex}1A`,
+             boxShadow: `0 0 15px ${colorHex}4D`
            }}>
          <span className={`${colorTailwind} text-white text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-br-lg rounded-tl-md shadow-sm whitespace-nowrap tracking-wider`}>
            EYE : {confidence}%
@@ -203,9 +216,8 @@ export default function DashboardPage() {
                   <p className="text-slate-500 text-sm font-medium">Tekan tombol ambil gambar pada alat fisik Anda.</p>
                 </div>
               ) : (
-               <div className="flex flex-col gap-6 md:gap-8 items-center md:items-start bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-100">
+                <div className="flex flex-col gap-6 md:gap-8 items-center md:items-start bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-100">
                   
-                  {/* KONTAINER GAMBAR DIKUNCI DI 4:3 AGAR PRESISI */}
                   <div 
                     className="relative w-full max-w-lg mx-auto bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-200 flex items-center justify-center" 
                     style={{ aspectRatio: '640/480' }}
@@ -252,7 +264,7 @@ export default function DashboardPage() {
                         href={`/history/${displayScan.scanId}`}
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 md:py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
                       >
-                        <i className="ph-bold ph-printer text-lg"></i> Cetak Laporan
+                        <i className="ph-bold ph-printer text-lg"></i> Buka Laporan
                       </Link>
                     </div>
                   </div>
@@ -274,24 +286,36 @@ export default function DashboardPage() {
                   <p className="text-xs text-slate-500 font-mono mt-0.5">{device?.macAddress}</p>
                 </div>
 
-                <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+                <div className={`bg-slate-800/50 rounded-2xl p-4 border transition-all ${battery <= 20 && !isCharging ? 'border-red-500/50 bg-red-500/10' : 'border-slate-700/50'}`}>
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Daya Baterai</p>
-                    <i className={battery > 20 ? "ph-fill ph-battery-high text-xl text-emerald-400" : "ph-fill ph-battery-warning text-xl text-red-400"}></i>
+                    {isCharging ? (
+                      <i className="ph-fill ph-lightning text-xl text-yellow-400 animate-pulse"></i>
+                    ) : battery <= 10 ? (
+                      <i className="ph-fill ph-battery-warning text-xl text-red-500 animate-ping"></i>
+                    ) : battery <= 20 ? (
+                      <i className="ph-fill ph-battery-low text-xl text-orange-400"></i>
+                    ) : (
+                      <i className="ph-fill ph-battery-high text-xl text-emerald-400"></i>
+                    )}
                   </div>
                   <div className="flex items-end gap-2">
-                    <h3 className="text-3xl font-outfit font-black">{isConnected ? battery : '--'}</h3>
-                    <span className="text-slate-400 font-bold mb-1">%</span>
+                    <h3 className={`text-3xl font-outfit font-black ${battery <= 20 && !isCharging ? 'text-red-400' : ''}`}>{isConnected ? battery : '--'}</h3>
+                    <span className="text-slate-400 font-bold mb-1">% 
+                      {isCharging ? <span className="text-yellow-400 text-[10px] uppercase ml-1 animate-pulse">(Mengisi Daya)</span> : 
+                       battery <= 10 ? <span className="text-red-400 text-[10px] uppercase ml-1">(Kritis!)</span> : 
+                       battery <= 20 ? <span className="text-orange-400 text-[10px] uppercase ml-1">(Lemah)</span> : ''}
+                    </span>
                   </div>
                 </div>
 
-                <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+                <div className={`bg-slate-800/50 rounded-2xl p-4 border transition-all ${latency > 200 ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-slate-700/50'}`}>
                   <div className="flex justify-between items-center mb-4">
-                    <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Jaringan MQTT (Ping)</p>
-                    <i className="ph-fill ph-wifi-high text-xl text-blue-400"></i>
+                    <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Jaringan (Ping)</p>
+                    <i className={`ph-fill ph-wifi-high text-xl ${latency > 200 ? 'text-yellow-400' : 'text-blue-400'}`}></i>
                   </div>
                   <div className="flex items-end gap-2">
-                    <h3 className="text-3xl font-outfit font-black">{isConnected ? latency : '--'}</h3>
+                    <h3 className={`text-3xl font-outfit font-black ${latency > 200 ? 'text-yellow-400' : ''}`}>{isConnected ? latency : '--'}</h3>
                     <span className="text-slate-400 font-bold mb-1">ms</span>
                   </div>
                 </div>
