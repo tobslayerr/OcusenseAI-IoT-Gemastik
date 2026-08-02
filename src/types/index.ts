@@ -13,10 +13,24 @@ export interface AIAnalysis {
 
 // PASTIKAN BARIS INI ADA
 export interface OcusensePayload {
+  mac_address: string;
+  device_name: string;
   scan_id: string;
+  patient: {
+    name: string;
+    dob: string;
+  };
   timestamp: string;
-  device_metrics: DeviceMetrics;
-  ai_analysis: AIAnalysis;
+  device_metrics: {
+    battery_percentage: number;
+    latency_ms: number;
+  };
+  ai_analysis: {
+    diagnosis: string;
+    confidence_score: number;
+    bounding_box: number[];
+  };
+  image: string; // Teks Base64 dari foto alat
 }
 
 export type ValidationStatus = "pending" | "validated";

@@ -1,31 +1,50 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
-import { usePathname } from "next/navigation";
+import { useMqttStore } from "@/store/useMqttStore";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const pathname = usePathname();
+  const router = useRouter();
+  const pathname = usePathname(); // Deteksi perpindahan rute
+  const connect = useMqttStore(state => state.connect);
+  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Menentukan judul halaman secara dinamis berdasarkan rute
-  const getPageTitle = () => {
-    if (pathname.includes("/history")) return "Catatan Pemeriksaan";
-    if (pathname.includes("/validation")) return "Ruang Kerja Dokter";
-    if (pathname.includes("/settings")) return "Spesifikasi Alat & Sistem";
-    return "Pantauan Alat Langsung";
-  };
+  // Kunci Utama: Jalankan ulang setiap kali pengguna pindah halaman!
+  useEffect(() => {
+    const deviceId = localStorage.getItem("active_device_id");
+    
+    if (!deviceId) {
+      router.replace("/");
+    } else {
+      setIsCheckingAuth(false);
+      connect(); // Jaga agar selalu online di setiap rute
+    }
+  }, [pathname, router, connect]); // <== Memantau pathname
+
+  if (isCheckingAuth) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-white">
+        <i className="ph-bold ph-spinner animate-spin text-5xl text-blue-500 mb-4"></i>
+        <p className="font-medium animate-pulse">Memverifikasi sesi aman...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden text-slate-800 bg-slate-50">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <main className="flex-1 flex flex-col h-screen relative overflow-hidden">
-        <Navbar title={getPageTitle()} onMenuClick={() => setIsSidebarOpen(true)} />
-        <div className="flex-1 overflow-y-auto p-6 md:p-8">
+    <div className="flex min-h-screen w-full bg-slate-50 font-sans text-slate-800 relative overflow-hidden">
+      <Sidebar isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+      <div className="flex-1 flex flex-col min-w-0 w-full h-screen overflow-y-auto">
+        <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
+        <main className="flex-1 p-4 md:p-8 w-full max-w-7xl mx-auto">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

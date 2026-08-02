@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
-import mqtt, { MqttClient } from 'mqtt';
-import { OcusensePayload } from '@/types';
+import mqtt from 'mqtt';
 
 interface MqttState {
-  client: MqttClient | null;
+  client: mqtt.MqttClient | null;
   isConnected: boolean;
   battery: number;
   latency: number;
-  latestScan: OcusensePayload | null;
+  latestScanPayload: any | null; // 🟢 Menyimpan data scan real-time
   connect: () => void;
   disconnect: () => void;
+  clearLatestScan: () => void;   // 🟢 Fungsi untuk menghapus scan dari layar
 }
 
 export const useMqttStore = create<MqttState>((set, get) => ({
@@ -17,52 +19,54 @@ export const useMqttStore = create<MqttState>((set, get) => ({
   isConnected: false,
   battery: 0,
   latency: 0,
-  latestScan: null,
-
+  latestScanPayload: null,
+  clearLatestScan: () => set({ latestScanPayload: null }),
+  
   connect: () => {
-    // Mencegah koneksi ganda jika sudah terhubung
-    if (get().client) return;
+    const currentClient = get().client;
+    // Cegah duplikasi koneksi
+    if (currentClient && currentClient.connected) return;
 
-    // Menghubungkan via WebSockets ke Pialang Mosquitto Lokal
-    const client = mqtt.connect('ws://localhost:9001');
+    const client = mqtt.connect('ws://localhost:9001', {
+      clientId: 'ocusense_web_' + Math.random().toString(16).substring(2, 10),
+      reconnectPeriod: 1000,
+      keepalive: 60
+    });
 
     client.on('connect', () => {
       set({ isConnected: true, client });
-      // Berlangganan ke dua topik utama
+      // Dengarkan Baterai & Hasil Scan secara bersamaan!
       client.subscribe('ocusense/telemetry');
-      client.subscribe('ocusense/scans');
-      console.log('✅ WebSockets MQTT Terhubung ke Dasbor');
+      client.subscribe('ocusense/scans'); 
     });
 
     client.on('message', (topic, message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        
-        if (topic === 'ocusense/telemetry') {
-          // Pembaruan data perangkat keras secara langsung (Live)
+      if (topic === 'ocusense/telemetry') {
+        try {
+          const data = JSON.parse(message.toString());
           set({ battery: data.battery_percentage, latency: data.latency_ms });
-        } 
-        else if (topic === 'ocusense/scans') {
-          // Pembaruan data saat ada hasil pemindaian AI yang masuk
-          set({ 
-            latestScan: data as OcusensePayload,
-            battery: data.device_metrics.battery_percentage,
-            latency: data.device_metrics.latency_ms
-          });
-        }
-      } catch (error) {
-        console.error('Gagal memproses pesan MQTT:', error);
+        } catch (e) {}
+      }
+      
+      // 🟢 TANGKAP HASIL SCAN SECARA REAL-TIME
+      if (topic === 'ocusense/scans') {
+        try {
+          const data = JSON.parse(message.toString());
+          set({ latestScanPayload: data });
+        } catch (e) {}
       }
     });
 
+    client.on('offline', () => set({ isConnected: false }));
     client.on('close', () => set({ isConnected: false }));
+    client.on('error', () => set({ isConnected: false }));
   },
-
+  
   disconnect: () => {
     const { client } = get();
     if (client) {
       client.end();
       set({ client: null, isConnected: false });
     }
-  },
+  }
 }));
