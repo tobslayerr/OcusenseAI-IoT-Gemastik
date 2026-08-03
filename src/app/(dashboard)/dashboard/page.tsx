@@ -14,7 +14,6 @@ import { useMqttStore } from "@/store/useMqttStore";
 dayjs.locale('id');
 
 export default function DashboardPage() {
-  // 🟢 PERBAIKAN: Menambahkan 'isCharging' di sini agar dikenali oleh TypeScript
   const { isConnected, battery, latency, isCharging, latestScanPayload, clearLatestScan } = useMqttStore();
   
   const [device, setDevice] = useState<any>(null);
@@ -118,8 +117,8 @@ export default function DashboardPage() {
     const width = ((bbox[2] - bbox[0]) / CAM_W) * 100;
     const height = ((bbox[3] - bbox[1]) / CAM_H) * 100;
 
-    let colorHex = diagnosis === "Katarak Matur" ? "#ef4444" : diagnosis === "Katarak Imatur" ? "#f97316" : "#10B981";
-    let colorTailwind = diagnosis === "Katarak Matur" ? "bg-red-500" : diagnosis === "Katarak Imatur" ? "bg-orange-500" : "bg-emerald-500";
+    let colorHex = diagnosis === "Katarak Matur" ? "#dc2626" : diagnosis === "Katarak Imatur" ? "#ea580c" : "#059669";
+    let colorTailwind = diagnosis === "Katarak Matur" ? "bg-red-600" : diagnosis === "Katarak Imatur" ? "bg-orange-600" : "bg-emerald-600";
 
     return (
       <div className="absolute rounded-lg flex items-start transition-all duration-500" 
@@ -127,31 +126,32 @@ export default function DashboardPage() {
              left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%`,
              border: `2px solid ${colorHex}`,
              backgroundColor: `${colorHex}1A`,
-             boxShadow: `0 0 15px ${colorHex}4D`
+             boxShadow: `0 0 20px ${colorHex}33`
            }}>
-         <span className={`${colorTailwind} text-white text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-br-lg rounded-tl-md shadow-sm whitespace-nowrap tracking-wider`}>
-           EYE : {confidence}%
+         <span className={`${colorTailwind} text-white text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-br-lg rounded-tl-md shadow-md whitespace-nowrap tracking-widest`}>
+           AI : {confidence}%
          </span>
       </div>
     );
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 w-full pb-10">
+    <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 w-full pb-10 font-sans text-slate-800">
       
+      {/* KEPALA DASBOR */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="font-outfit text-2xl md:text-3xl font-bold text-slate-800">Pantauan Alat</h2>
-          <p className="text-slate-500 text-xs md:text-sm mt-1">Ringkasan aktivitas pemindaian dan status perangkat cerdas.</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Pantauan Klinis</h2>
+          <p className="text-slate-500 text-sm md:text-base font-medium mt-1">Ringkasan aktivitas pemindaian dan telemetri perangkat medis.</p>
         </div>
         
-        <div className="bg-white border border-slate-200 px-4 md:px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl shadow-sm w-full md:w-auto flex items-center justify-between md:justify-end gap-4">
+        <div className="bg-white border border-slate-200 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full md:w-auto flex items-center justify-between md:justify-end gap-6 transition-all hover:border-blue-200">
           <div>
             <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">Status Alat</p>
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
-              <p className={`font-outfit font-bold text-sm md:text-base ${isConnected ? 'text-emerald-600' : 'text-red-600'}`}>
-                {isConnected ? 'ONLINE TERHUBUNG' : 'TERPUTUS'}
+            <div className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`}></span>
+              <p className={`font-bold text-sm md:text-base tracking-tight ${isConnected ? 'text-emerald-700' : 'text-red-600'}`}>
+                {isConnected ? 'TERHUBUNG' : 'TERPUTUS'}
               </p>
             </div>
           </div>
@@ -160,163 +160,189 @@ export default function DashboardPage() {
 
       {isLoading ? (
         <div className="animate-pulse space-y-6 md:space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => <div key={i} className="h-28 bg-slate-200 rounded-2xl md:rounded-3xl"></div>)}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-slate-100 rounded-3xl border border-slate-200"></div>)}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div className="h-64 bg-slate-200 rounded-3xl md:col-span-2"></div>
-            <div className="h-64 bg-slate-200 rounded-3xl md:col-span-1"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="h-96 bg-slate-100 rounded-4xl lg:col-span-2 border border-slate-200"></div>
+            <div className="h-96 bg-slate-100 rounded-4xl lg:col-span-1 border border-slate-200"></div>
           </div>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity"><i className="ph-fill ph-files text-7xl"></i></div>
-              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Total Pemindaian</p>
-              <h3 className="text-3xl md:text-4xl font-outfit font-black text-slate-800">{stats.total}</h3>
+          {/* KARTU STATISTIK */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 border border-blue-100 text-blue-600 group-hover:scale-110 transition-transform">
+                <i className="ph-duotone ph-files text-2xl"></i>
+              </div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Pindaian</p>
+              <h3 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{stats.total}</h3>
             </div>
-            <div className="bg-linear-to-br from-red-500 to-red-600 border border-red-600 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-md shadow-red-500/20 text-white relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity"><i className="ph-fill ph-warning-circle text-7xl"></i></div>
-              <p className="text-[10px] md:text-xs font-bold text-red-100 uppercase tracking-widest mb-2">Katarak Matur</p>
-              <h3 className="text-3xl md:text-4xl font-outfit font-black">{stats.matur}</h3>
+
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group transition-all hover:border-red-200 hover:shadow-[0_8px_30px_rgba(220,38,38,0.08)]">
+              <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 border border-red-100 text-red-600 group-hover:scale-110 transition-transform">
+                <i className="ph-duotone ph-warning-circle text-2xl"></i>
+              </div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Katarak Matur</p>
+              <h3 className="text-3xl md:text-4xl font-extrabold text-red-600 tracking-tight">{stats.matur}</h3>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity"><i className="ph-fill ph-eye text-7xl text-orange-500"></i></div>
-              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Katarak Imatur</p>
-              <h3 className="text-3xl md:text-4xl font-outfit font-black text-orange-500">{stats.imatur}</h3>
+
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group transition-all hover:border-orange-200 hover:shadow-[0_8px_30px_rgba(234,88,12,0.08)]">
+              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 border border-orange-100 text-orange-600 group-hover:scale-110 transition-transform">
+                <i className="ph-duotone ph-eye text-2xl"></i>
+              </div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Katarak Imatur</p>
+              <h3 className="text-3xl md:text-4xl font-extrabold text-orange-600 tracking-tight">{stats.imatur}</h3>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity"><i className="ph-fill ph-check-circle text-7xl text-emerald-500"></i></div>
-              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Mata Normal</p>
-              <h3 className="text-3xl md:text-4xl font-outfit font-black text-emerald-600">{stats.normal}</h3>
+
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group transition-all hover:border-emerald-200 hover:shadow-[0_8px_30px_rgba(16,185,129,0.08)]">
+              <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 border border-emerald-100 text-emerald-600 group-hover:scale-110 transition-transform">
+                <i className="ph-duotone ph-check-circle text-2xl"></i>
+              </div>
+              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mata Normal</p>
+              <h3 className="text-3xl md:text-4xl font-extrabold text-emerald-600 tracking-tight">{stats.normal}</h3>
             </div>
+
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
+          {/* AREA KONTEN UTAMA */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 items-start">
             
-            <div className="md:col-span-2 bg-white border border-slate-200 rounded-3xl shadow-sm p-6 md:p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-outfit text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <i className="ph-fill ph-clock text-blue-600"></i> Pindaian Terakhir
+            {/* PANEL TINJAUAN KLINIS */}
+            <div className="lg:col-span-2 bg-white border border-slate-100 rounded-4xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8">
+              <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i className="ph-duotone ph-clock"></i>
+                  </div>
+                  Pindaian Terakhir
                 </h3>
                 {displayScan?.isLive && (
-                  <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full animate-pulse border border-emerald-200">
-                    <i className="ph-fill ph-broadcast"></i> Live Feed Masuk
+                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] uppercase font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+                    Live Feed
                   </span>
                 )}
               </div>
 
               {!displayScan ? (
-                <div className="py-20 text-center border-2 border-dashed border-slate-200 bg-slate-50 rounded-3xl flex flex-col items-center justify-center">
-                  <div className="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
-                    <i className="ph-fill ph-camera text-4xl text-slate-300"></i>
+                <div className="py-24 text-center border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-3xl flex flex-col items-center justify-center">
+                  <div className="w-20 h-20 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center mb-5 text-slate-300">
+                    <i className="ph-duotone ph-camera text-4xl"></i>
                   </div>
-                  <h4 className="font-bold text-slate-700 mb-1">Siap Menerima Pindaian</h4>
-                  <p className="text-slate-500 text-sm font-medium">Tekan tombol ambil gambar pada alat fisik Anda.</p>
+                  <h4 className="font-bold text-slate-800 text-lg mb-1 tracking-tight">Siap Menerima Data</h4>
+                  <p className="text-slate-500 text-sm font-medium">Sistem menunggu transmisi citra dari alat fisik.</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-6 md:gap-8 items-center md:items-start bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-100">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
                   
-                  <div 
-                    className="relative w-full max-w-lg mx-auto bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-200 flex items-center justify-center" 
-                    style={{ aspectRatio: '640/480' }}
-                  >
-                    <img 
-                      src={`data:image/jpeg;base64,${displayScan.image}`} 
-                      className="w-full h-full object-cover grayscale opacity-90" 
-                      alt="Scan Mata Full View" 
-                    />
-                    {renderYoloBox(displayScan.boundingBox, displayScan.diagnosis, displayScan.confidenceScore)}
+                  {/* Gambar YOLO */}
+                  <div className="w-full md:w-1/2">
+                    <div className="relative w-full bg-slate-900 rounded-2xl overflow-hidden shadow-md border border-slate-200 flex items-center justify-center" style={{ aspectRatio: '640/480' }}>
+                      <img 
+                        src={`data:image/jpeg;base64,${displayScan.image}`} 
+                        className="w-full h-full object-cover grayscale opacity-90" 
+                        alt="Rekam Medis Mata" 
+                      />
+                      {renderYoloBox(displayScan.boundingBox, displayScan.diagnosis, displayScan.confidenceScore)}
+                    </div>
                   </div>
                   
-                  <div className="w-full">
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
+                  {/* Detail Hasil AI */}
+                  <div className="w-full md:w-1/2 flex flex-col h-full justify-between">
+                    <div>
+                      <div className="mb-6 bg-slate-50 border border-slate-100 p-4 rounded-xl">
                         <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">ID Pindai</p>
-                        <p className="font-outfit font-bold text-slate-800 text-lg md:text-xl">#{displayScan.scanId}</p>
+                        <p className="font-bold text-slate-900 text-lg md:text-xl tracking-tight mb-3">#{displayScan.scanId}</p>
+                        
+                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Waktu Perekaman</p>
+                        <p className="text-sm font-semibold text-slate-700">{dayjs(displayScan.timestamp).format('DD MMMM YYYY, HH:mm:ss')} WIB</p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Waktu</p>
-                        <p className="text-xs md:text-sm font-semibold text-slate-600">{dayjs(displayScan.timestamp).format('HH:mm:ss')} WIB</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-8">
-                      <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hasil Analisis AI</p>
-                      <div className="flex items-center gap-3">
-                        <span className={`inline-flex items-center gap-2 font-bold px-4 py-2 rounded-xl text-sm md:text-base ${displayScan.diagnosis === "Katarak Matur" ? "bg-red-100 text-red-700" : displayScan.diagnosis === "Katarak Imatur" ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700"}`}>
-                          <span className={`w-2.5 h-2.5 rounded-full ${displayScan.diagnosis === "Katarak Matur" ? "bg-red-500 animate-ping" : displayScan.diagnosis === "Katarak Imatur" ? "bg-orange-500" : "bg-emerald-500"}`}></span>
-                          {displayScan.diagnosis}
-                        </span>
-                        <span className="text-sm font-bold text-slate-500">Akurasi: {displayScan.confidenceScore}%</span>
+                      
+                      <div className="mb-8">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Kesimpulan Diagnostik AI</p>
+                        <div className="flex flex-col items-start gap-3">
+                          <span className={`inline-flex items-center gap-2.5 font-bold px-4 py-2.5 rounded-xl text-sm md:text-base border shadow-sm ${displayScan.diagnosis === "Katarak Matur" ? "bg-red-50 text-red-700 border-red-200" : displayScan.diagnosis === "Katarak Imatur" ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+                            <span className={`w-2.5 h-2.5 rounded-full ${displayScan.diagnosis === "Katarak Matur" ? "bg-red-500 animate-pulse" : displayScan.diagnosis === "Katarak Imatur" ? "bg-orange-500" : "bg-emerald-500"}`}></span>
+                            {displayScan.diagnosis}
+                          </span>
+                          <span className="text-sm font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg">
+                            Tingkat Akurasi: <span className="text-slate-800">{displayScan.confidenceScore}%</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
                       <button 
                         onClick={handleSelesai}
-                        className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-3 md:py-3.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="flex-1 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold px-4 py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
                       >
-                        <i className="ph-bold ph-check-circle text-lg"></i> Selesai
+                        <i className="ph-bold ph-check-circle text-lg"></i> Tandai Selesai
                       </button>
                       <Link 
                         href={`/history/${displayScan.scanId}`}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 md:py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 rounded-xl transition-all shadow-[0_8px_20px_-6px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2"
                       >
-                        <i className="ph-bold ph-printer text-lg"></i> Buka Laporan
+                        <i className="ph-bold ph-file-pdf text-lg"></i> Buka Laporan
                       </Link>
                     </div>
                   </div>
+
                 </div>
               )}
             </div>
 
-            <div className="md:col-span-1 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl p-6 md:p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-bl-full blur-2xl"></div>
+            {/* PANEL TELEMETRI ALAT */}
+            <div className="lg:col-span-1 bg-white border border-slate-100 rounded-4xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8 relative overflow-hidden flex flex-col">
               
-              <h3 className="font-outfit text-lg md:text-xl font-bold text-white mb-6 border-b border-slate-800 pb-4 flex items-center gap-2">
-                <i className="ph-fill ph-cpu text-blue-400"></i> Edge Hardware
-              </h3>
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <i className="ph-duotone ph-cpu"></i>
+                </div>
+                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Telemetri Alat</h3>
+              </div>
 
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Perangkat</p>
-                  <p className="font-outfit font-bold text-lg">{device?.name || "Memuat..."}</p>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">{device?.macAddress}</p>
+              <div className="space-y-5 flex-1">
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                  <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Identifikasi Perangkat</p>
+                  <p className="font-extrabold text-slate-900 text-lg tracking-tight">{device?.name || "Memuat..."}</p>
+                  <p className="text-xs font-mono font-medium text-slate-500 mt-1">{device?.macAddress}</p>
                 </div>
 
-                <div className={`bg-slate-800/50 rounded-2xl p-4 border transition-all ${battery <= 20 && !isCharging ? 'border-red-500/50 bg-red-500/10' : 'border-slate-700/50'}`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Daya Baterai</p>
+                <div className={`rounded-2xl p-5 border transition-all ${battery <= 20 && !isCharging ? 'bg-red-50 border-red-200 shadow-sm' : isCharging ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'}`}>
+                  <div className="flex justify-between items-center mb-3">
+                    <p className={`text-[10px] md:text-xs font-bold uppercase tracking-widest ${battery <= 20 && !isCharging ? 'text-red-500' : isCharging ? 'text-blue-500' : 'text-slate-400'}`}>Daya Listrik</p>
                     {isCharging ? (
-                      <i className="ph-fill ph-lightning text-xl text-yellow-400 animate-pulse"></i>
+                      <i className="ph-duotone ph-lightning text-2xl text-blue-500 animate-pulse"></i>
                     ) : battery <= 10 ? (
-                      <i className="ph-fill ph-battery-warning text-xl text-red-500 animate-ping"></i>
+                      <i className="ph-duotone ph-battery-warning text-2xl text-red-600 animate-ping"></i>
                     ) : battery <= 20 ? (
-                      <i className="ph-fill ph-battery-low text-xl text-orange-400"></i>
+                      <i className="ph-duotone ph-battery-low text-2xl text-orange-500"></i>
                     ) : (
-                      <i className="ph-fill ph-battery-high text-xl text-emerald-400"></i>
+                      <i className="ph-duotone ph-battery-high text-2xl text-emerald-500"></i>
                     )}
                   </div>
-                  <div className="flex items-end gap-2">
-                    <h3 className={`text-3xl font-outfit font-black ${battery <= 20 && !isCharging ? 'text-red-400' : ''}`}>{isConnected ? battery : '--'}</h3>
-                    <span className="text-slate-400 font-bold mb-1">% 
-                      {isCharging ? <span className="text-yellow-400 text-[10px] uppercase ml-1 animate-pulse">(Mengisi Daya)</span> : 
-                       battery <= 10 ? <span className="text-red-400 text-[10px] uppercase ml-1">(Kritis!)</span> : 
-                       battery <= 20 ? <span className="text-orange-400 text-[10px] uppercase ml-1">(Lemah)</span> : ''}
+                  <div className="flex items-end gap-1.5">
+                    <h3 className={`text-4xl font-extrabold tracking-tight ${battery <= 20 && !isCharging ? 'text-red-700' : isCharging ? 'text-blue-700' : 'text-slate-900'}`}>{isConnected ? battery : '--'}</h3>
+                    <span className="text-slate-500 font-bold mb-1.5">% 
+                      {isCharging ? <span className="text-blue-600 text-[10px] uppercase ml-2 tracking-wider">(Mengisi Daya)</span> : 
+                       battery <= 10 ? <span className="text-red-600 text-[10px] uppercase ml-2 tracking-wider">(Kritis)</span> : 
+                       battery <= 20 ? <span className="text-orange-600 text-[10px] uppercase ml-2 tracking-wider">(Lemah)</span> : ''}
                     </span>
                   </div>
                 </div>
 
-                <div className={`bg-slate-800/50 rounded-2xl p-4 border transition-all ${latency > 200 ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-slate-700/50'}`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Jaringan (Ping)</p>
-                    <i className={`ph-fill ph-wifi-high text-xl ${latency > 200 ? 'text-yellow-400' : 'text-blue-400'}`}></i>
+                <div className={`rounded-2xl p-5 border transition-all ${latency > 200 ? 'bg-yellow-50 border-yellow-200 shadow-sm' : 'bg-white border-slate-200'}`}>
+                  <div className="flex justify-between items-center mb-3">
+                    <p className={`text-[10px] md:text-xs font-bold uppercase tracking-widest ${latency > 200 ? 'text-yellow-600' : 'text-slate-400'}`}>Ping Jaringan</p>
+                    <i className={`ph-duotone ph-wifi-high text-2xl ${latency > 200 ? 'text-yellow-500' : 'text-slate-300'}`}></i>
                   </div>
-                  <div className="flex items-end gap-2">
-                    <h3 className={`text-3xl font-outfit font-black ${latency > 200 ? 'text-yellow-400' : ''}`}>{isConnected ? latency : '--'}</h3>
-                    <span className="text-slate-400 font-bold mb-1">ms</span>
+                  <div className="flex items-end gap-1.5">
+                    <h3 className={`text-4xl font-extrabold tracking-tight ${latency > 200 ? 'text-yellow-700' : 'text-slate-900'}`}>{isConnected ? latency : '--'}</h3>
+                    <span className="text-slate-500 font-bold mb-1.5">ms</span>
                   </div>
                 </div>
               </div>

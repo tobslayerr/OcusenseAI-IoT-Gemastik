@@ -92,56 +92,65 @@ client.on('message', async (topic, message) => {
             <meta charset="UTF-8">
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
           </head>
-          <body style="margin: 0; padding: 20px; background-color: #f1f5f9; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
-            <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <body style="margin: 0; padding: 20px; background-color: #f8fafc; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+            
+            <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
               
-              <div style="background-color: #0f172a; padding: 25px 30px; text-align: left; border-bottom: 4px solid ${colorTheme};">
-                <h1 style="color: #ffffff; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">LAPORAN HASIL PENAPISAN MEDIS</h1>
-                <p style="color: #94a3b8; margin-top: 5px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">Sistem Diagnostik Ocusense AI</p>
+              <!-- HEADER KLINIS -->
+              <div style="background-color: #ffffff; padding: 35px 35px 25px 35px; text-align: left; border-bottom: 1px solid #f1f5f9; border-top: 6px solid #2563eb;">
+                <p style="color: #2563eb; margin: 0 0 8px 0; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Departemen Oftalmologi</p>
+                <h1 style="color: #0f172a; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Rekam Medis Elektronik</h1>
+                <p style="color: #64748b; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Sistem Skrining Presisi &bull; Ocusense AI</p>
               </div>
               
-              <div style="padding: 30px;">
+              <div style="padding: 30px 35px 40px 35px;">
                 
-                <h3 style="color: #0f172a; font-size: 13px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Informasi Pasien & Pindai</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
+                <!-- DATA PASIEN & INSTRUMEN -->
+                <h3 style="color: #0f172a; font-size: 11px; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Informasi Pasien & Pindai</h3>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 35px; font-size: 14px; background-color: #f8fafc; border-radius: 12px; overflow: hidden;">
                   <tr>
-                    <td style="padding: 10px 0; color: #475569; width: 40%;">Nama Lengkap</td>
-                    <td style="padding: 10px 0; color: #0f172a; font-weight: 600; text-align: right;">${patientName}</td>
+                    <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; width: 40%; font-weight: 500;">Nama Lengkap</td>
+                    <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 800; text-align: right;">${patientName}</td>
                   </tr>
                   <tr>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Usia & Tanggal Lahir</td>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 600; text-align: right;">${calculatedAge} Tahun (${dobFormatted})</td>
+                    <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 500;">Usia & Tanggal Lahir</td>
+                    <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 700; text-align: right;">${calculatedAge} Tahun (${dobFormatted})</td>
                   </tr>
                   <tr>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Tanggal & Waktu Periksa</td>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 600; text-align: right;">${scanTime} WIB</td>
+                    <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 500;">Tanggal & Waktu Periksa</td>
+                    <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 700; text-align: right;">${scanTime} WIB</td>
                   </tr>
                   <tr>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Lokasi Pemindaian (Alat)</td>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 600; text-align: right;">${device.name}</td>
-                  </tr>
-                </table>
-
-                <h3 style="color: #0f172a; font-size: 13px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Kesimpulan Analisis Klinis</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
-                  <tr>
-                    <td style="padding: 10px 0; color: #475569; width: 40%;">Diagnosis Primer</td>
-                    <td style="padding: 10px 0; color: ${colorTheme}; font-weight: 800; font-size: 16px; text-align: right; text-transform: uppercase;">${payload.ai_analysis.diagnosis}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Tingkat Kepercayaan (Akurasi)</td>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 700; text-align: right;">${payload.ai_analysis.confidence_score}%</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #475569;">Status Penanganan</td>
-                    <td style="padding: 10px 0; border-top: 1px solid #f1f5f9; color: #0f172a; font-weight: 700; text-align: right;">${handlingStatus}</td>
+                    <td style="padding: 15px 20px; color: #64748b; font-weight: 500;">Instrumen Tepi (Edge)</td>
+                    <td style="padding: 15px 20px; color: #0f172a; font-weight: 700; text-align: right;">${device.name}</td>
                   </tr>
                 </table>
 
-                <h3 style="color: #0f172a; font-size: 13px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Citra Medis & Lokalisasi (YOLO Vision)</h3>
+                <!-- KESIMPULAN DIAGNOSIS -->
+                <h3 style="color: #0f172a; font-size: 11px; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Kesimpulan Analisis Klinis</h3>
+                
+                <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 40px; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.01);">
+                  <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Diagnosis Primer</p>
+                  <h2 style="margin: 0 0 20px 0; color: ${colorTheme}; font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.5px;">${payload.ai_analysis.diagnosis}</h2>
+                  
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                    <tr>
+                      <td style="padding: 15px 0 5px 0; color: #64748b; font-weight: 500;">Akurasi Inferensi (AI Confidence)</td>
+                      <td style="padding: 15px 0 5px 0; color: #0f172a; font-weight: 800; font-size: 16px; text-align: right;">${payload.ai_analysis.confidence_score}%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 5px 0 0 0; color: #64748b; font-weight: 500;">Rekomendasi Tindakan Lanjutan</td>
+                      <td style="padding: 5px 0 0 0; color: #0f172a; font-weight: 700; text-align: right;">${handlingStatus}</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- CITRA MEDIS -->
+                <h3 style="color: #0f172a; font-size: 11px; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">Lampiran Visual Medis (YOLOv8 Edge)</h3>
                 
                 <!-- 🟢 STRUKTUR TABEL GRID AMAN EMAIL (CLONING DASBOR) -->
-                <div style="background-color: #000000; border: 2px solid #cbd5e1; border-radius: 8px; overflow: hidden; margin-bottom: 30px; width: 100%; max-width: 640px; margin-left: auto; margin-right: auto;">
+                <div style="background-color: #0f172a; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 30px; width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                   
                   <table background="cid:scanImage" width="100%" height="480" cellpadding="0" cellspacing="0" border="0" style="background-image: url('cid:scanImage'); background-size: cover; background-position: center; width: 100%; height: 480px; max-width: 640px; border-collapse: collapse;">
                     <!-- BARIS 1: Spasi Kosong Atas -->
@@ -153,8 +162,8 @@ client.on('message', async (topic, message) => {
                     <!-- BARIS 2: Kotak Bounding Box YOLO -->
                     <tr>
                       <td width="${x}" height="${h}"></td>
-                      <td width="${w}" height="${h}" style="border: 3px solid ${colorTheme}; vertical-align: top;">
-                         <div style="background-color: ${colorTheme}; color: #ffffff; font-size: 11px; font-weight: bold; display: inline-block; padding: 4px 8px; border-bottom-right-radius: 6px;">EYE: ${payload.ai_analysis.confidence_score}%</div>
+                      <td width="${w}" height="${h}" style="border: 2px solid ${colorTheme}; vertical-align: top; background-color: rgba(255,255,255,0.05);">
+                         <div style="background-color: ${colorTheme}; color: #ffffff; font-size: 10px; font-weight: 800; letter-spacing: 1px; display: inline-block; padding: 6px 10px; border-bottom-right-radius: 8px;">AI : ${payload.ai_analysis.confidence_score}%</div>
                       </td>
                       <td width="${640 - x - w}" height="${h}"></td>
                     </tr>
@@ -168,11 +177,12 @@ client.on('message', async (topic, message) => {
 
                 </div>
 
-                <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: center;">
-                  <p style="font-size: 11px; color: #64748b; line-height: 1.6; margin: 0;">
-                    Dokumen elektronik ini digenerasi secara otomatis oleh sistem komputasi Ocusense.<br/>
-                    Laporan ini bersifat sebagai penunjang skrining awal dan bukan merupakan vonis diagnosis mutlak.<br/>
-                    Harap konsultasikan hasil ini kepada Dokter Spesialis Mata (Sp.M).
+                <!-- FOOTER -->
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 25px; text-align: center;">
+                  <p style="font-size: 11px; color: #94a3b8; line-height: 1.7; margin: 0; font-weight: 500;">
+                    Dokumen elektronik ini digenerasi secara otonom oleh komputasi tepi Ocusense AI.<br/>
+                    Laporan ini dirancang eksklusif sebagai instrumen penunjang skrining awal klinis, bukan vonis diagnosis mutlak.<br/>
+                    Harap selalu konsultasikan hasil ini kepada Dokter Spesialis Mata (Sp.M).
                   </p>
                 </div>
               </div>

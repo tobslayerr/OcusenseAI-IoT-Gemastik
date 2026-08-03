@@ -77,98 +77,138 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 w-full pb-10">
+    <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 w-full pb-12 font-sans text-slate-900">
       
-      {/* MODAL KUSTOM (Pengganti Alert) */}
+      {/* MODAL KUSTOM ELEGAN */}
       {modal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl animate-fade-in">
-            <div className="flex justify-center mb-4">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center ${modal.type === "success" ? "bg-emerald-50 text-emerald-500" : "bg-red-50 text-red-500"}`}>
-                <i className={`ph-fill ${modal.type === "success" ? "ph-check-circle" : "ph-warning-circle"} text-6xl`}></i>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-4xl p-8 md:p-10 max-w-sm w-full text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100 animate-fade-in">
+            <div className="flex justify-center mb-5">
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center border shadow-sm ${modal.type === "success" ? "bg-emerald-50 text-emerald-500 border-emerald-100" : "bg-red-50 text-red-500 border-red-100"}`}>
+                <i className={`ph-duotone ${modal.type === "success" ? "ph-check-circle" : "ph-warning-circle"} text-5xl`}></i>
               </div>
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-2">{modal.type === "success" ? "Berhasil!" : "Terjadi Kesalahan"}</h3>
-            <p className="text-slate-500 text-sm md:text-base mb-8">{modal.message}</p>
-            <button onClick={() => setModal({ ...modal, isOpen: false })} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 md:py-4 rounded-xl transition-colors shadow-lg">Tutup</button>
+            <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 mb-2 tracking-tight">{modal.type === "success" ? "Berhasil Disimpan" : "Terjadi Kesalahan"}</h3>
+            <p className="text-slate-500 text-sm md:text-base font-medium mb-8">{modal.message}</p>
+            <button onClick={() => setModal({ ...modal, isOpen: false })} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 md:py-4 rounded-xl transition-colors shadow-sm">
+              Tutup
+            </button>
           </div>
         </div>
       )}
 
-      <div>
-        <h2 className="font-outfit text-2xl md:text-3xl font-bold text-slate-800">Pengaturan Perangkat</h2>
-        <p className="text-slate-500 text-xs md:text-sm mt-1">Konfigurasi perangkat keras, profil pasien, dan notifikasi.</p>
+      {/* HEADER HALAMAN */}
+      <div className="border-b border-slate-200/60 pb-6">
+        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Konfigurasi Sistem</h2>
+        <p className="text-slate-500 text-sm md:text-base font-medium mt-1.5">Pengaturan instrumen, identitas rekam medis, dan penjaluran notifikasi.</p>
       </div>
 
       {isLoading ? (
         // SKELETON LOADING
-        <div className="animate-pulse space-y-6 md:space-y-8">
-          <div className="h-40 md:h-48 bg-slate-200 rounded-3xl w-full"></div>
-          <div className="h-48 md:h-56 bg-slate-200 rounded-3xl w-full"></div>
-          <div className="h-64 md:h-72 bg-slate-200 rounded-3xl w-full"></div>
+        <div className="animate-pulse space-y-6 md:space-y-8 pt-4">
+          <div className="h-40 md:h-48 bg-slate-100 border border-slate-200 rounded-4xl w-full"></div>
+          <div className="h-48 md:h-56 bg-slate-100 border border-slate-200 rounded-4xl w-full"></div>
+          <div className="h-64 md:h-72 bg-slate-100 border border-slate-200 rounded-4xl w-full"></div>
         </div>
       ) : (
-        <>
-          <div className="bg-linear-to-br from-blue-600 to-blue-800 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute -right-5 -top-5 opacity-10"><i className="ph-fill ph-user text-9xl md:text-[12rem]"></i></div>
-            <div className="relative z-10">
-              <span className="bg-blue-900/50 text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest px-3 md:px-4 py-1.5 rounded-full border border-blue-400/30 mb-4 inline-block">Profil Pasien Aktif</span>
-              <h2 className="text-2xl md:text-4xl font-outfit font-bold mb-2">{device?.operatorName || "Belum Diatur"}</h2>
-              <p className="text-xs md:text-sm text-blue-100 flex items-center gap-2">
-                <i className="ph-bold ph-identification-card text-lg md:text-xl"></i> 
-                {device?.operatorDob ? `Usia Pasien: ${calculateAge(device.operatorDob)} Tahun` : "Data usia tidak ditemukan"}
-              </p>
+        <div className="pt-2 space-y-6 md:space-y-8">
+          
+          {/* KARTU PROFIL PASIEN (Clean Blue) */}
+          <div className="bg-blue-600 rounded-4xl p-8 md:p-10 text-white shadow-[0_8px_30px_rgba(37,99,235,0.15)] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-400/30 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <div className="w-20 h-20 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shrink-0">
+                <i className="ph-duotone ph-user text-4xl text-white"></i>
+              </div>
+              <div>
+                <span className="bg-blue-700/50 text-blue-100 text-[10px] md:text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-3 inline-block">Profil Pasien Aktif</span>
+                <h2 className="text-2xl md:text-4xl font-extrabold mb-1.5 tracking-tight">{device?.operatorName || "Belum Dikonfigurasi"}</h2>
+                <p className="text-xs md:text-sm text-blue-100 font-medium flex items-center gap-2">
+                  {device?.operatorDob ? `Usia Pasien: ${calculateAge(device.operatorDob)} Tahun` : "Data usia belum dimasukkan ke dalam sistem"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="relative z-10 shrink-0 hidden md:block">
+              <i className="ph-duotone ph-identification-card text-7xl text-white/20"></i>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
-            <h3 className="font-outfit text-lg md:text-xl font-bold text-slate-800 mb-6 border-b border-slate-100 pb-4 flex items-center gap-2">
-              <i className="ph-fill ph-hard-drives text-blue-600"></i> Status Perangkat Tepi
+          {/* STATUS PERANGKAT TEPI */}
+          <div className="bg-white rounded-4xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-10">
+            <h3 className="text-xl font-extrabold text-slate-900 mb-6 border-b border-slate-100 pb-4 flex items-center gap-3 tracking-tight">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i className="ph-duotone ph-hard-drives"></i>
+              </div>
+              Pemantauan Instrumen Fisik
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 md:p-5 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="p-5 md:p-6 bg-slate-50/50 border border-slate-100 rounded-2xl flex justify-between items-center transition-all hover:bg-slate-50">
                 <div className="truncate pr-4">
-                  <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Koneksi ({device?.macAddress})</p>
-                  <p className="font-outfit font-bold text-slate-800 truncate text-sm md:text-base">{device?.name}</p>
+                  <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Identitas Perangkat</p>
+                  <p className="font-extrabold text-slate-900 tracking-tight truncate text-base md:text-lg">{device?.name}</p>
+                  <p className="text-[10px] md:text-xs font-mono font-medium text-slate-500 mt-0.5">{device?.macAddress}</p>
                 </div>
-                <span className={`text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2 shrink-0 ${isConnected ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <span className={`text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2 shrink-0 shadow-sm border ${isConnected ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
                   {isConnected ? `Online` : 'Offline'}
                 </span>
               </div>
-              <div className="p-4 md:p-5 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center">
+              
+              <div className="p-5 md:p-6 bg-slate-50/50 border border-slate-100 rounded-2xl flex justify-between items-center transition-all hover:bg-slate-50">
                 <div>
-                  <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Daya Baterai</p>
-                  <p className="font-outfit font-bold text-slate-800 text-sm md:text-base">Li-ion 18650</p>
+                  <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Daya Kelistrikan</p>
+                  <p className="font-extrabold text-slate-900 tracking-tight text-base md:text-lg">Sensor Baterai</p>
                 </div>
-                <span className={`text-sm md:text-base font-bold flex items-center gap-1 ${battery > 20 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  <i className={battery > 20 ? "ph-fill ph-battery-high text-xl md:text-2xl" : "ph-fill ph-battery-warning text-xl md:text-2xl"}></i>
+                <span className={`text-base md:text-lg font-extrabold flex items-center gap-2 tracking-tight ${battery > 20 ? 'text-blue-700' : 'text-red-600'}`}>
+                  <i className={battery > 20 ? "ph-duotone ph-battery-high text-2xl md:text-3xl text-blue-500" : "ph-duotone ph-battery-warning text-2xl md:text-3xl text-red-500"}></i>
                   {isConnected ? `${battery}%` : '--'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
-            <h3 className="font-outfit text-lg md:text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <i className="ph-fill ph-broadcast text-blue-600"></i> Penjaluran Laporan Darurat
+          {/* FORMULIR PENJALURAN NOTIFIKASI */}
+          <div className="bg-white rounded-4xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-10">
+            <h3 className="text-xl font-extrabold text-slate-900 mb-2 flex items-center gap-3 tracking-tight">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+                <i className="ph-duotone ph-siren"></i>
+              </div>
+              Penjaluran Laporan Darurat
             </h3>
-            <p className="text-xs md:text-sm text-slate-500 mb-6 max-w-2xl">
-              Tentukan email yang akan menerima notifikasi otomatis jika alat mendeteksi Katarak Matur.
+            <p className="text-sm text-slate-500 mb-8 max-w-2xl font-medium leading-relaxed pl-11">
+              Sistem akan mengirimkan laporan medis (PDF) secara otonom ke kontak di bawah ini apabila instrumen mengklasifikasikan temuan sebagai indikasi Katarak Matur.
             </p>
+            
             <form onSubmit={handleSaveConfig} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                 <div>
-                  <label className="block text-xs md:text-sm font-bold text-slate-700 mb-2">WhatsApp Dokter/Wali</label>
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+6281234567890" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 md:py-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm" />
+                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Nomor WhatsApp Dokter/Wali</label>
+                  <input 
+                    type="tel" 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)} 
+                    placeholder="Contoh: 6281234567890" 
+                    className="w-full bg-white border border-slate-200 text-slate-800 font-semibold rounded-xl px-5 py-3.5 md:py-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm text-sm" 
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs md:text-sm font-bold text-slate-700 mb-2">Email Darurat 🚨</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dokter@rumah-sakit.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 md:py-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm" />
+                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Alamat Email Rumah Sakit</label>
+                  <input 
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    placeholder="Contoh: dokter@rumah-sakit.com" 
+                    className="w-full bg-white border border-slate-200 text-slate-800 font-semibold rounded-xl px-5 py-3.5 md:py-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm text-sm" 
+                  />
                 </div>
               </div>
-              <div className="text-right pt-4 border-t border-slate-100">
-                <button type="submit" disabled={isSaving} className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 md:py-4 px-8 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
+              
+              <div className="text-right pt-6 mt-4 border-t border-slate-100">
+                <button type="submit" disabled={isSaving} className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 md:py-4 px-8 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_8px_20px_-6px_rgba(37,99,235,0.4)]">
                   {isSaving ? <i className="ph-bold ph-spinner animate-spin text-lg"></i> : <i className="ph-bold ph-floppy-disk text-lg"></i>}
                   {isSaving ? "Menyimpan Konfigurasi..." : "Simpan Konfigurasi"}
                 </button>
@@ -176,12 +216,14 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          <div className="pt-4 flex justify-end">
-            <button onClick={handleLogoutDevice} className="w-full md:w-auto bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 md:py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all border border-red-200">
-              <i className="ph-bold ph-sign-out text-lg md:text-xl"></i> Keluar (Ganti Alat/Pasien)
+          {/* TOMBOL KELUAR */}
+          <div className="pt-2 flex justify-end">
+            <button onClick={handleLogoutDevice} className="w-full md:w-auto bg-white hover:bg-red-50 hover:border-red-200 text-red-600 font-bold py-3.5 md:py-4 px-8 rounded-xl flex items-center justify-center gap-2.5 transition-all border border-slate-200 shadow-[0_2px_8px_rgb(0,0,0,0.02)]">
+              <i className="ph-duotone ph-sign-out text-lg md:text-xl"></i> Akhiri Sesi (Ganti Instrumen)
             </button>
           </div>
-        </>
+          
+        </div>
       )}
     </div>
   );

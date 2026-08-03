@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
+// 🟢 Mengimpor dan mengonfigurasi Plus Jakarta Sans dari Google Fonts
+const jakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"], 
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Ocusense AI - Dashboard",
-  description: "Portal rekam medis dan pemantauan deteksi katarak IoT",
+  title: "Ocusense AI | Dasbor Klinis",
+  description: "Sistem Skrining Medis Presisi Tinggi Berbasis Edge AI",
 };
 
 export default function RootLayout({
@@ -14,10 +22,11 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
-        {/* Injeksi skrip Phosphor Icons tanpa npm install */}
-        <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+        {/* 🟢 MENGEMBALIKAN Ikon Phosphor (Mendukung fill, duotone, bold, dll) */}
+        <script src="https://unpkg.com/@phosphor-icons/web" async></script>
       </head>
-      <body className="flex h-screen overflow-hidden text-slate-800 bg-slate-50">
+      
+      <body className={`${jakartaSans.className} antialiased bg-background-main text-slate-900`}>
         {children}
       </body>
     </html>

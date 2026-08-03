@@ -65,7 +65,7 @@ export default function LaporanPDFPage() {
       const jsPDF = window.jspdf?.jsPDF;
 
       if (!htmlToImage || !jsPDF) {
-        alert("Sistem konversi PDF sedang disiapkan. Mohon tunggu 2 detik dan klik lagi.");
+        alert("Sistem konversi PDF sedang disiapkan. Mohon tunggu beberapa detik dan klik lagi.");
         setIsDownloading(false);
         console.error = originalConsoleError; // Kembalikan console jika dibatalkan
         return;
@@ -109,7 +109,7 @@ export default function LaporanPDFPage() {
         hiddenContainer.removeChild(clone);
       }
 
-      pdf.save(`Laporan_Medis_${record.scanId}.pdf`);
+      pdf.save(`Rekam_Medis_${record.scanId}.pdf`);
       document.body.removeChild(hiddenContainer);
 
     } catch (error) {
@@ -124,7 +124,15 @@ export default function LaporanPDFPage() {
   };
 
   if (isLoading || !record) {
-    return <div className="p-20 text-center font-bold text-slate-500">Memuat Laporan...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="relative w-16 h-16 mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+        </div>
+        <p className="font-bold text-slate-500 tracking-tight">Memuat Rekam Medis...</p>
+      </div>
+    );
   }
 
   const renderYoloBox = (bbox: any, diagnosis: string, confidence: number) => {
@@ -146,8 +154,8 @@ export default function LaporanPDFPage() {
              border: `2px solid ${colorHex}`,
              backgroundColor: `${colorHex}1A`
            }}>
-         <span style={{ backgroundColor: colorHex, color: '#ffffff' }} className="text-[10px] font-bold px-2 py-1 rounded-br-lg rounded-tl-md whitespace-nowrap tracking-wider">
-           EYE : {confidence}%
+         <span style={{ backgroundColor: colorHex, color: '#ffffff' }} className="text-[10px] font-bold px-3 py-1.5 rounded-br-lg rounded-tl-md whitespace-nowrap tracking-widest shadow-sm">
+           AI : {confidence}%
          </span>
       </div>
     );
@@ -156,67 +164,89 @@ export default function LaporanPDFPage() {
   const diagColor = record.diagnosis === "Katarak Matur" ? "#dc2626" : record.diagnosis === "Katarak Imatur" ? "#ea580c" : "#059669";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-10 px-4 md:px-0">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4 md:px-0 font-sans text-slate-900">
       
-      <div className="flex justify-between items-center mb-6">
-        <button onClick={() => router.back()} className="text-slate-500 hover:text-blue-600 font-bold flex items-center gap-2 transition-colors">
-          <i className="ph-bold ph-arrow-left"></i> Kembali ke Riwayat
+      {/* KONTROL NAVIGASI (Sembunyi saat cetak) */}
+      <div className="flex justify-between items-center bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] print:hidden">
+        <button onClick={() => router.back()} className="text-slate-500 hover:text-blue-600 font-bold flex items-center gap-2 transition-colors text-sm md:text-base">
+          <i className="ph-bold ph-arrow-left text-lg"></i> Kembali ke Riwayat
         </button>
         <button 
           onClick={handleDownloadPDF} 
           disabled={isDownloading}
-          className="bg-blue-600 text-white px-5 md:px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-blue-700 flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed text-sm md:text-base"
+          className="bg-blue-600 text-white px-5 md:px-6 py-3 rounded-xl font-bold shadow-[0_8px_20px_-6px_rgba(37,99,235,0.4)] hover:bg-blue-700 flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed text-sm md:text-base"
         >
-          {isDownloading ? <i className="ph-bold ph-spinner animate-spin text-lg md:text-xl"></i> : <i className="ph-bold ph-download-simple text-lg md:text-xl"></i>}
-          {isDownloading ? 'Menyiapkan Dokumen...' : 'Download ke PDF'}
+          {isDownloading ? <i className="ph-bold ph-spinner animate-spin text-lg md:text-xl"></i> : <i className="ph-duotone ph-printer text-lg md:text-xl"></i>}
+          {isDownloading ? 'Menyusun Laporan...' : 'Cetak Dokumen PDF'}
         </button>
       </div>
           
-      <div id="pdf-page-1" className="bg-white p-6 md:p-12 border border-slate-200 rounded-2xl shadow-sm flex flex-col font-sans mb-8">
+      {/* HALAMAN PDF 1: REKAM MEDIS & DIAGNOSIS */}
+      <div id="pdf-page-1" className="bg-white p-8 md:p-14 border border-slate-100 rounded-4xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col font-sans mb-8 relative overflow-hidden">
         
-        <div className="border-b-4 border-slate-800 pb-6 mb-8 flex justify-between items-end">
+        {/* Ornamen Header Medis */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+
+        <div className="border-b-2 border-slate-100 pb-8 mb-10 flex justify-between items-end mt-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-widest m-0">Laporan Pemindaian AI</h1>
-            <p className="text-slate-500 mt-1 font-medium m-0">Sistem Deteksi Dini Katarak Ocusense</p>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100">
+                <i className="ph-duotone ph-file-text text-2xl"></i>
+              </div>
+              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest m-0">Departemen Oftalmologi</p>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight m-0">Rekam Medis Elektronik</h1>
+            <p className="text-slate-500 mt-2 font-medium text-sm m-0">Sistem Skrining Presisi - Ocusense AI</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 m-0">ID Pindai</p>
-            <p className="text-lg md:text-xl font-bold font-mono text-slate-800 m-0">#{record.scanId}</p>
+            <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 m-0">ID Rujukan Pindai</p>
+            <p className="text-xl md:text-2xl font-bold font-mono text-slate-900 m-0 tracking-tight">#{record.scanId}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10">
-          <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-            <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 m-0">Data Pasien</h3>
-            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0">Nama Lengkap:</p>
-            <p className="text-base md:text-lg font-bold text-slate-800 mb-3 m-0">{record.patientName || "Pasien Anonim"}</p>
-            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0">Usia & Tanggal Periksa:</p>
-            <p className="text-sm md:text-md font-bold text-slate-800 m-0">{record.patientAge ? `${record.patientAge} Tahun` : "-"} / {dayjs(record.timestamp).format('DD MMMM YYYY')}</p>
+          <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-5">
+              <i className="ph-duotone ph-user text-slate-400 text-lg"></i>
+              <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest m-0">Identitas Pasien</h3>
+            </div>
+            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0 font-medium">Nama Lengkap:</p>
+            <p className="text-base md:text-xl font-bold text-slate-900 mb-4 m-0 tracking-tight">{record.patientName || "Pasien Anonim"}</p>
+            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0 font-medium">Usia & Tanggal Pemeriksaan:</p>
+            <p className="text-sm md:text-base font-bold text-slate-800 m-0">{record.patientAge ? `${record.patientAge} Tahun` : "Tidak Diketahui"} &bull; {dayjs(record.timestamp).format('DD MMMM YYYY')}</p>
           </div>
-          <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-            <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 m-0">Data Perangkat Asal</h3>
-            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0">Lokasi Pemindaian (Alat):</p>
-            <p className="text-base md:text-lg font-bold text-slate-800 mb-3 m-0">{record.device?.name || "-"}</p>
-            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0">Alamat Jaringan Keras:</p>
-            <p className="text-sm md:text-md font-bold text-slate-800 font-mono m-0">{record.device?.macAddress || "-"}</p>
+          
+          <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-5">
+              <i className="ph-duotone ph-cpu text-slate-400 text-lg"></i>
+              <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest m-0">Data Instrumen Asal</h3>
+            </div>
+            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0 font-medium">Stasiun Pemindaian:</p>
+            <p className="text-base md:text-xl font-bold text-slate-900 mb-4 m-0 tracking-tight">{record.device?.name || "-"}</p>
+            <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0 font-medium">Alamat Fisik Jaringan (MAC):</p>
+            <p className="text-sm md:text-base font-bold text-slate-800 font-mono m-0">{record.device?.macAddress || "-"}</p>
           </div>
         </div>
 
-        <div className="mb-6 flex gap-8 items-center border border-slate-200 p-6 md:p-8 rounded-2xl bg-white">
+        <div className="mb-6 border border-slate-100 p-8 rounded-2xl bg-white shadow-[0_2px_12px_rgb(0,0,0,0.02)]">
           <div className="w-full">
-            <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 m-0">Kesimpulan Analisis Klinis</h3>
-            <h2 className="text-2xl md:text-4xl font-black mb-6 m-0 uppercase" style={{ color: diagColor }}>
+            <div className="flex items-center gap-2 mb-4">
+              <i className="ph-duotone ph-stethoscope text-slate-400 text-xl"></i>
+              <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest m-0">Kesimpulan Diagnosis Artifisial</h3>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-8 m-0 tracking-tight" style={{ color: diagColor }}>
               {record.diagnosis}
             </h2>
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+            
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-8 md:gap-16 pt-6 border-t border-slate-100">
               <div>
-                <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0">Confidence Score (Akurasi):</p>
-                <p className="text-xl md:text-3xl font-bold text-slate-800 m-0">{record.confidenceScore}%</p>
+                <p className="text-[11px] md:text-sm text-slate-500 mb-1.5 m-0 font-medium">Akurasi Inferensi (AI Confidence):</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-slate-900 m-0 tracking-tight">{record.confidenceScore}%</p>
               </div>
               <div>
-                <p className="text-[11px] md:text-sm text-slate-500 mb-1 m-0">Status Penanganan:</p>
+                <p className="text-[11px] md:text-sm text-slate-500 mb-1.5 m-0 font-medium">Rekomendasi Tindakan Lanjutan:</p>
                 <p className="text-lg md:text-xl font-bold text-slate-800 m-0">
-                  {record.diagnosis === "Katarak Matur" ? "Perlu Rujukan Bedah Phaco" : "Batas Aman / Observasi Lanjutan"}
+                  {record.diagnosis === "Katarak Matur" ? "Segera Rujuk Bedah Phacoemulsification" : record.diagnosis === "Katarak Imatur" ? "Jadwalkan Observasi & Pemeriksaan Lanjutan" : "Kondisi Lensa Mata Normal"}
                 </p>
               </div>
             </div>
@@ -225,39 +255,52 @@ export default function LaporanPDFPage() {
 
         <div className="grow min-h-10"></div>
 
-        <div className="text-center text-[10px] md:text-xs text-slate-400 border-t border-slate-200 pt-6 mt-6 m-0">
-          Lanjut ke halaman berikutnya untuk melihat rekaman Citra Medis Dasar dan Lokalisasi (YOLO).
+        <div className="text-center text-[10px] md:text-xs text-slate-400 border-t border-slate-100 pt-8 mt-8 m-0 font-medium">
+          Halaman 1 dari 2 &bull; Dokumen Elektronik Ocusense AI
         </div>
       </div>
 
-      <div id="pdf-page-2" className="bg-white p-6 md:p-12 border border-slate-200 rounded-2xl shadow-sm flex flex-col font-sans">
+      {/* HALAMAN PDF 2: CITRA MEDIS YOLO */}
+      <div id="pdf-page-2" className="bg-white p-8 md:p-14 border border-slate-100 rounded-4xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col font-sans relative overflow-hidden">
         
-        <div className="border-b-4 border-slate-800 pb-6 mb-8">
-          <h2 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-widest m-0">Lampiran Citra Medis</h2>
-          <p className="text-slate-500 mt-1 font-medium text-xs md:text-sm m-0">Laporan #{record.scanId}</p>
+        <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+
+        <div className="border-b-2 border-slate-100 pb-8 mb-10 mt-4 flex justify-between items-end">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight m-0">Lampiran Visual Medis</h2>
+            <p className="text-slate-500 mt-2 font-medium text-sm m-0">Bukti Pindaian Kornea Lensa</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 m-0">ID Rujukan</p>
+            <p className="text-lg md:text-xl font-bold font-mono text-slate-900 m-0 tracking-tight">#{record.scanId}</p>
+          </div>
         </div>
 
-        <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 m-0">Lokalisasi Kornea Mata (YOLO Vision)</h3>
+        <div className="flex items-center gap-2 mb-5">
+          <i className="ph-duotone ph-scan text-slate-400 text-lg"></i>
+          <h3 className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest m-0">Lokalisasi Objek Visual (YOLOv8 Edge Vision)</h3>
+        </div>
         
         <div 
-          className="mb-8 w-full max-w-160 mx-auto bg-black rounded-2xl overflow-hidden border-2 border-slate-200 relative flex items-center justify-center"
+          className="mb-8 w-full max-w-160 mx-auto bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative flex items-center justify-center"
           style={{ aspectRatio: '640/480' }}
         >
           <img 
             src={`data:image/jpeg;base64,${record.image}`} 
-            className="w-full h-full object-contain grayscale opacity-90" 
+            className="w-full h-full object-contain grayscale opacity-95" 
             style={{ display: 'block' }}
-            alt="Scanned Eye" 
+            alt="Scanned Eye Vision" 
           />
           {renderYoloBox(record.boundingBox, record.diagnosis, record.confidenceScore)}
         </div>
 
         <div className="grow min-h-10"></div>
 
-        <div className="text-center text-[10px] md:text-xs text-slate-400 border-t border-slate-200 pt-6 mt-6 m-0">
-          Dokumen elektronik ini dihasilkan secara otomatis oleh sistem komputasi Edge AI Ocusense.<br/>
-          Laporan ini bersifat sebagai penunjang skrining awal dan bukan merupakan vonis diagnosis klinis mutlak.<br/>
-          Harap selalu konsultasikan hasil ini kepada Dokter Spesialis Mata (Sp.M).
+        <div className="text-center text-[10px] md:text-xs text-slate-400 border-t border-slate-100 pt-8 mt-8 m-0 font-medium leading-relaxed">
+          Dokumen elektronik ini dihasilkan secara otonom oleh komputasi tepi (Edge Computing) Ocusense AI.<br/>
+          Laporan ini dirancang secara eksklusif sebagai instrumen penunjang skrining awal klinis, bukan vonis diagnosis mutlak.<br/>
+          Validasi medis berkelanjutan harus selalu dilakukan oleh Dokter Spesialis Mata (Sp.M).<br/><br/>
+          Halaman 2 dari 2 &bull; Dokumen Elektronik Ocusense AI
         </div>
       </div>
 
